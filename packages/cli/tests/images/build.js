@@ -64,7 +64,7 @@ exports.sideEffectCss = `
 	<link rel="apple-touch-icon" href=\\"\\/assets\\/icons\\/apple-touch-icon\\.png\\">
 	<link rel="manifest" href="\\/manifest\\.json">
 	<style>h1{background:#673ab8}<\\/style>
-	<link href=\\"/bundle.\\w{5}.css\\" rel=\\"stylesheet\\" media=\\"only x\\" onload=\\"this.media='all'\\">
+	<link href=\\"/bundle.\\w{5}.css\\" rel=\\"stylesheet\\" media=\\"print\\" onload=\\"this.media='all'\\">
 	<noscript>
 		<link rel=\\"stylesheet\\" href=\\"\\/bundle.\\w{5}.css\\">
 	</noscript>
@@ -84,7 +84,7 @@ exports.prerender.heads.home = `
 	<link rel="apple-touch-icon" href=\\"\\/assets\\/icons\\/apple-touch-icon\\.png\\">
 	<link rel="manifest" href="\\/manifest\\.json">
 	<style>html{padding:0}<\\/style>
-	<link href=\\"/bundle.\\w{5}.css\\" rel=\\"stylesheet\\" media=\\"only x\\" onload=\\"this.media='all'\\">
+	<link href=\\"/bundle.\\w{5}.css\\" rel=\\"stylesheet\\" media=\\"print\\" onload=\\"this.media='all'\\">
 	<noscript>
 		<link rel=\\"stylesheet\\" href=\\"\\/bundle.\\w{5}.css\\">
 	</noscript>
@@ -101,7 +101,7 @@ exports.prerender.heads.route66 = `
 	<link rel="apple-touch-icon" href=\\"\\/assets\\/icons\\/apple-touch-icon\\.png\\">
 	<link rel="manifest" href="\\/manifest\\.json">
 	<style>html{padding:0}<\\/style>
-	<link href=\\"/bundle.\\w{5}.css\\" rel=\\"stylesheet\\" media=\\"only x\\" onload=\\"this.media='all'\\">
+	<link href=\\"/bundle.\\w{5}.css\\" rel=\\"stylesheet\\" media=\\"print\\" onload=\\"this.media='all'\\">
 	<noscript>
 		<link rel=\\"stylesheet\\" href=\\"\\/bundle.\\w{5}.css\\">
 	</noscript>
@@ -118,7 +118,7 @@ exports.prerender.heads.custom = `
 	<link rel="apple-touch-icon" href=\\"\\/assets\\/icons\\/apple-touch-icon\\.png\\">
 	<link rel="manifest" href="\\/manifest\\.json">
 	<style>html{padding:0}<\\/style>
-	<link href=\\"/bundle.\\w{5}.css\\" rel=\\"stylesheet\\" media=\\"only x\\" onload=\\"this.media='all'\\">
+	<link href=\\"/bundle.\\w{5}.css\\" rel=\\"stylesheet\\" media=\\"print\\" onload=\\"this.media='all'\\">
 	<noscript>
 		<link rel=\\"stylesheet\\" href=\\"\\/bundle.\\w{5}.css\\">
 	</noscript>
@@ -140,7 +140,7 @@ exports.preload.head = `
 	<link rel=\\"preload\\" href=\\"\\/route-home\\.chunk\\.\\w{5}\\.js\\" as=\\"script\\">
 	<link rel=\\"preload\\" href=\\"\\/route-home\\.chunk\\.\\w{5}\\.css\\" as=\\"style\\">
 	<style>html{padding:0}<\\/style>
-	<link href=\\"\\/bundle\\.\\w{5}\\.css\\" rel=\\"stylesheet\\" media=\\"only x\\" onload=\\"this.media='all'\\">
+	<link href=\\"\\/bundle\\.\\w{5}\\.css\\" rel=\\"stylesheet\\" media=\\"print\\" onload=\\"this.media='all'\\">
 	<noscript>
 		<link rel=\\"stylesheet\\" href=\\"\\/bundle.\\w{5}.css\\">
 	</noscript>

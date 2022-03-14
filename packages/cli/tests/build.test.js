@@ -1,7 +1,7 @@
 const { join } = require('path');
 const { access, readdir, readFile } = require('fs').promises;
 const looksLike = require('html-looks-like');
-const { create, build } = require('./lib/cli');
+const { create, build, buildFast } = require('./lib/cli');
 const { snapshot } = require('./lib/utils');
 const { subject } = require('./lib/output');
 const images = require('./images/build');
@@ -46,28 +46,31 @@ function testMatch(received, expected) {
 	}
 }
 
+/**
+ * Get build output file as utf-8 string
+ * @param {string} dir
+ * @param {RegExp | string} file
+ * @returns {Promise<string>}
+ */
+async function getOutputFile(dir, file) {
+	if (typeof file !== 'string') {
+		// @ts-ignore
+		file = (await readdir(join(dir, 'build'))).find(f => file.test(f));
+	}
+	return await readFile(join(dir, 'build', file), 'utf8');
+}
+
 describe('preact build', () => {
-	it(`builds the 'default' template`, async () => {
+	it('builds the `default` template', async () => {
 		let dir = await create('default');
 
 		await build(dir);
-		dir = join(dir, 'build');
 
-		let output = await snapshot(dir);
+		let output = await snapshot(join(dir, 'build'));
 		testMatch(output, images.default);
 	});
 
-	it(`builds the 'default' template with esm`, async () => {
-		let dir = await create('default');
-
-		await build(dir, { esm: true });
-		dir = join(dir, 'build');
-
-		let output = await snapshot(dir);
-		testMatch(output, images['default-esm']);
-	});
-
-	it(`builds the 'typescript' template`, async () => {
+	it('builds the `typescript` template', async () => {
 		let dir = await create('typescript');
 
 		// The tsconfig.json in the template covers the test directory,
@@ -75,7 +78,7 @@ describe('preact build', () => {
 		shell.cd(dir);
 		shell.exec('npm i @types/enzyme enzyme-adapter-preact-pure');
 
-		expect(() => build(dir)).not.toThrow();
+		await expect(buildFast(dir)).resolves.toBeUndefined();
 	});
 
 	it('should use SASS styles', async () => {
@@ -87,23 +90,12 @@ describe('preact build', () => {
 	});
 
 	it('should use custom `.babelrc`', async () => {
-		// app with custom .babelrc enabling async functions
+		// app with custom .babelrc setting target to ie11
 		let dir = await subject('custom-babelrc');
-
-		await build(dir);
-
-		const bundleFile = (await readdir(`${dir}/build`)).find(file =>
-			/bundle\.\w{5}\.js$/.test(file)
-		);
-		const transpiledChunk = await readFile(
-			`${dir}/build/${bundleFile}`,
-			'utf8'
-		);
-
-		// when tragetting only last 1 chrome version, babel preserves
-		// arrow function. So checking for the delay function code from delay function in
-		// https://github.com/preactjs/preact-cli/blob/master/packages/cli/tests/subjects/custom-babelrc/index.js
-		expect(transpiledChunk.includes('=>setTimeout')).toBe(true);
+		await buildFast(dir, { babelConfig: '.babelrc', prerender: false });
+		const transpiledChunk = await getOutputFile(dir, /bundle\.\w{5}\.js$/);
+		// when targetting ie11, Babel should remove arrow functions.
+		expect(/=>\s?setTimeout/.test(transpiledChunk)).toBe(false);
 	});
 
 	prerenderUrlFiles.forEach(prerenderUrls => {
@@ -184,7 +176,7 @@ describe('preact build', () => {
 
 	it('should preload correct files', async () => {
 		let dir = await subject('preload-chunks');
-		await build(dir, { preload: true });
+		await buildFast(dir, { preload: true });
 
 		const head1 = await getHead(dir);
 		expect(head1).toEqual(
@@ -195,19 +187,15 @@ describe('preact build', () => {
 	it('should use custom `preact.config.js`', async () => {
 		// app with stable output name via preact.config.js
 		let dir = await subject('custom-webpack');
-		await build(dir);
-
+		await buildFast(dir);
 		let stableOutput = join(dir, 'build/bundle.js');
 		expect(await access(stableOutput)).toBeUndefined();
 	});
 
 	it('should use custom `template.html`', async () => {
 		let dir = await subject('custom-template');
-		await build(dir);
-
-		let file = join(dir, 'build/index.html');
-		let html = await readFile(file, 'utf-8');
-
+		await buildFast(dir);
+		const html = await getOutputFile(dir, 'index.html');
 		expect(html).toEqual(
 			expect.stringMatching(getRegExpFromMarkup(images.template))
 		);
@@ -215,7 +203,8 @@ describe('preact build', () => {
 
 	it('should patch global location object', async () => {
 		let dir = await subject('location-patch');
-		expect(() => build(dir)).not.toThrow();
+
+		await expect(buildFast(dir)).resolves.toBeUndefined();
 	});
 
 	it('should import non-modules CSS even when side effects are false', async () => {
@@ -230,7 +219,7 @@ describe('preact build', () => {
 
 	it('should copy resources from static to build directory', async () => {
 		let dir = await subject('static-root');
-		await build(dir);
+		await buildFast(dir);
 		let file = join(dir, 'build', '.htaccess');
 		expect(await access(file)).toBeUndefined();
 	});
@@ -238,7 +227,7 @@ describe('preact build', () => {
 	it('should error out for invalid CLI argument', async () => {
 		let dir = await subject('custom-template');
 		const mockExit = jest.spyOn(process, 'exit').mockImplementation(() => {});
-		await expect(build(dir, { 'service-worker': false })).rejects.toEqual(
+		await expect(buildFast(dir, { 'service-worker': false })).rejects.toEqual(
 			new Error('Invalid argument found.')
 		);
 		expect(mockExit).toHaveBeenCalledWith(1);
@@ -247,9 +236,8 @@ describe('preact build', () => {
 
 	it('should produce correct push-manifest', async () => {
 		let dir = await create('default');
-
-		await build(dir);
-		const manifest = await readFile(`${dir}/build/push-manifest.json`, 'utf8');
+		await buildFast(dir);
+		const manifest = await getOutputFile(dir, 'push-manifest.json');
 		expect(manifest).toEqual(
 			expect.stringMatching(getRegExpFromMarkup(images.pushManifest))
 		);

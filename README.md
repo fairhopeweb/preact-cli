@@ -266,8 +266,9 @@ preact build --prerenderUrls src/prerender-urls.json
 If a static JSON file is too restrictive, you may want to provide a javascript file that exports your routes instead.
 Routes can be exported as a JSON string or an object and can optionally be returned from a function.
 
+> `prerender-urls.js`
+
 ```js
-// prerender-urls.js
 module.exports = [
 	{
 		url: '/',
@@ -311,19 +312,33 @@ The default templates comes with a `.css` file for each component. You can start
 
 ### Using Environment Variables
 
-You can reference and use environment variables in your `preact.config.js` by using `process.env`:
+You can reference and use any environment variable in your application that has been prefixed with `PREACT_APP_` automatically:
+
+> `src/index.js`
 
 ```js
-export default {
-	webpack(config, env, helpers, options) {
-		if (process.env.MY_VARIABLE) {
-			/** You can add a config here that will only used when your variable is truthy **/
-		}
-	},
-};
+console.log(process.env.PREACT_APP_MY_VARIABLE);
 ```
 
-If you'd like to use these variables in your application, you can use the [DefinePlugin] config from our recipes wiki.
+If your variable is not prefixed, you can still add it manually by using your `preact.config.js` (see [DefinePlugin] config in the recipes wiki).
+
+You can also set variables using a `.env` file in the root of your project:
+
+> `.env`
+
+```
+PREACT_APP_MY_VARIABLE="my-value"
+```
+
+You can also reference environment variables in your `preact.config.js`:
+
+```js
+export default (config, env, helpers, options) => {
+	if (process.env.MY_VARIABLE) {
+		/** You can add a config here that will only used when your variable is truthy **/
+	}
+};
+```
 
 ### Route-Based Code Splitting
 

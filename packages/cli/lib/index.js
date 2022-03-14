@@ -1,4 +1,5 @@
 #!/usr/bin/env node
+require('dotenv').config();
 const envinfo = require('envinfo');
 const sade = require('sade');
 const notifier = require('update-notifier');
